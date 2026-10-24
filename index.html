@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مَغَامَرَاتُ نُونَة النَّحْلَة - حَرْفُ النُّونِ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Cairo & Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        story: {
+                            yellow: '#FEF08A',
+                            amber: '#F59E0B',
+                            teal: '#14B8A6',
+                            pink: '#F472B6',
+                            purple: '#8B5CF6',
+                            sky: '#38BDF8',
+                            orange: '#FB923C'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Cairo', 'Tajawal', 'sans-serif'],
+                    },
+                    animation: {
+                        'float-bee': 'floatBee 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'wiggle': 'wiggle 0.5s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        floatBee: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-12px) rotate(5deg)' }
+                        },
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 50%, #E0F2FE 100%);
+            min-height: 100vh;
+            user-select: none;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        .story-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 4px solid #FDE68A;
+            box-shadow: 0 20px 35px -5px rgba(217, 119, 6, 0.15);
+        }
+
+        .btn-press {
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-press:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+        .btn-press:active {
+            transform: translateY(2px) scale(0.97);
+        }
+
+        /* Flower button pulsing glow */
+        .flower-glow:hover {
+            filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
+        }
+
+        /* Certificate printable styling */
+        @media print {
+            body { background: white; }
+            #header-nav, #btn-restart, .no-print { display: none !important; }
+            #app-container { border: none; box-shadow: none; width: 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-2 sm:p-4 text-slate-800">
+
+    <!-- Main Container -->
+    <div id="app-container" class="w-full max-w-3xl min-h-[660px] story-card rounded-3xl p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden my-auto border-4 border-amber-300">
+        
+        <!-- Header / Credits Bar -->
+        <header id="header-nav" class="flex flex-wrap items-center justify-between bg-amber-100/90 rounded-2xl p-3 mb-2 border-2 border-amber-300 gap-2">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl sm:text-3xl animate-float-bee">🐝</span>
+                <div>
+                    <h1 class="text-sm sm:text-base font-black text-amber-900 leading-tight">
+                        أَهْلاً بِكُمْ يَا طُلَّابِي الأَذْكِيَاء! ✨
+                    </h1>
+                    <p class="text-xs sm:text-sm font-extrabold text-teal-800">
+                        إِعْدَادُ الأُسْتَاذَةِ: مَرْيَم البَلُوشِيّ
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div id="level-badge" class="hidden bg-amber-400 text-amber-950 px-3 py-1 rounded-xl font-black text-xs sm:text-sm shadow-sm border border-amber-500">
+                    المَرْحَلَة <span id="current-lvl-num">1</span> مِنْ 3
+                </div>
+                <button id="sound-btn" onclick="toggleMute()" class="bg-white text-amber-800 p-2 sm:p-2.5 rounded-xl text-xs sm:text-sm font-bold border-2 border-amber-300 hover:bg-amber-50 transition btn-press">
+                    <i id="sound-icon" class="fas fa-volume-up"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Screen Slot -->
+        <main id="main-content" class="flex-1 flex flex-col justify-center my-auto relative">
+            <!-- Dynamic JavaScript Views Render Here -->
+        </main>
+
+        <!-- Toast Feedback Banner -->
+        <div id="toast-banner" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 transform transition-all duration-300 -translate-y-24 opacity-0 pointer-events-none">
+            <div id="toast-body" class="px-6 py-3 rounded-2xl font-black text-base sm:text-lg text-white shadow-2xl flex items-center gap-2">
+                <span id="toast-emoji">✨</span>
+                <span id="toast-msg">إِجَابَةٌ رَائِعَةٌ!</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-2 text-center text-xs font-bold text-amber-900/80 border-t border-amber-200/80 pt-2 flex items-center justify-between no-print">
+            <span>مَغَامَرَاتُ حَرْفِ النُّونِ 🌸</span>
+            <span class="font-black text-purple-800">إِعْدَادُ الأُسْتَاذَةِ: مَرْيَم البَلُوشِيّ</span>
+            <span>3 مَرَاحِلَ شَيِّقَةٍ 🚀</span>
+        </footer>
+    </div>
+
+    <!-- Application JavaScript Code -->
+    <script>
+        // Web Audio Synthesizer Sound FX Engine
+        class AudioSynth {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            playBuzz() {
+                if (isMuted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.linearRampToValueAtTime(220, now + 0.2);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+            playCorrect() {
+                if (isMuted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+                osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.3); // C6
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.45);
+            }
+            playWrong() {
+                if (isMuted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.setValueAtTime(180, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+            playStar() {
+                if (isMuted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.12);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+        }
+
+        const soundFX = new AudioSynth();
+        let isMuted = false;
+        let currentLevel = 0;
+        let starScore = 0;
+        let activeInterval = null;
+        let activeTimeout = null;
+
+        // Strict Arabic Web Speech Engine (No English Fallbacks)
+        let cachedArabicVoice = null;
+
+        function loadArabicVoice() {
+            if (!('speechSynthesis' in window)) return;
+            const voices = window.speechSynthesis.getVoices();
+            cachedArabicVoice = voices.find(v => v.lang.startsWith('ar-SA') || v.lang.startsWith('ar_SA')) ||
+                               voices.find(v => v.lang.startsWith('ar-OM') || v.lang.startsWith('ar_OM')) ||
+                               voices.find(v => v.lang.startsWith('ar-EG') || v.lang.startsWith('ar_EG')) ||
+                               voices.find(v => v.lang.startsWith('ar')) || null;
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = loadArabicVoice;
+            loadArabicVoice();
+        }
+
+        function speakArabic(text) {
+            if (isMuted || !('speechSynthesis' in window)) return;
+            if (!cachedArabicVoice) loadArabicVoice();
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-SA';
+            if (cachedArabicVoice) {
+                utterance.voice = cachedArabicVoice;
+                utterance.rate = 0.85;
+                utterance.pitch = 1.1;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                soundFX.playBuzz();
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const icon = document.getElementById('sound-icon');
+            if (isMuted) {
+                icon.className = 'fas fa-volume-mute text-rose-500';
+            } else {
+                icon.className = 'fas fa-volume-up text-amber-800';
+            }
+        }
+
+        function clearTimers() {
+            if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
+            if (activeTimeout) { clearTimeout(activeTimeout); activeTimeout = null; }
+        }
+
+        function showToast(msg, isSuccess, emoji = '✨') {
+            const banner = document.getElementById('toast-banner');
+            const body = document.getElementById('toast-body');
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-emoji').innerText = emoji;
+
+            body.className = `px-6 py-3 rounded-2xl font-black text-base sm:text-lg text-white shadow-2xl flex items-center gap-2 ${
+                isSuccess ? 'bg-emerald-500 border-2 border-emerald-300' : 'bg-rose-500 border-2 border-rose-300'
+            }`;
+
+            banner.classList.remove('-translate-y-24', 'opacity-0');
+            banner.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                banner.classList.remove('translate-y-0', 'opacity-100');
+                banner.classList.add('-translate-y-24', 'opacity-0');
+            }, 1800);
+        }
+
+        // INIT GAME ROUTER
+        window.onload = function() {
+            renderWelcomeScreen();
+        };
+
+        // SCREEN 1: WELCOME SCREEN
+        function renderWelcomeScreen() {
+            clearTimers();
+            document.getElementById('level-badge').classList.add('hidden');
+            const main = document.getElementById('main-content');
+
+            main.innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center py-2 my-auto space-y-4 animate-fade-in">
+                    
+                    <!-- Teacher Credit Banner -->
+                    <div class="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-amber-950 px-6 py-2 rounded-full shadow-md border-2 border-white flex items-center gap-2 btn-press">
+                        <i class="fas fa-crown text-amber-900 text-lg sm:text-xl"></i>
+                        <span class="text-sm sm:text-base font-black">إِعْدَادُ الأُسْتَاذَةِ: مَرْيَم البَلُوشِيّ</span>
+                    </div>
+
+                    <!-- Story Hero Mascot -->
+                    <div class="relative animate-float-bee my-2">
+                        <div class="w-28 h-28 sm:w-36 sm:h-36 bg-gradient-to-tr from-amber-300 via-yellow-200 to-amber-400 rounded-full flex items-center justify-center text-6xl sm:text-7xl shadow-xl border-4 border-white">
+                            🐝
+                        </div>
+                        <span class="absolute -top-2 -right-2 bg-pink-500 text-white text-xs sm:text-sm font-black px-3 py-1 rounded-full shadow-lg border-2 border-white animate-bounce">
+                            نُونَة النَّحْلَة
+                        </span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h2 class="text-2xl sm:text-4xl font-black text-amber-900 drop-shadow-sm">
+                            مَغَامَرَاتُ نُونَة فِي مَزْرَعَةِ النُّونِ 🌸
+                        </h2>
+                        <p class="text-xs sm:text-base font-bold text-slate-700 max-w-md mx-auto leading-relaxed">
+                            هَيَّا نُسَاعِدْ النَّحْلَةَ نُونَة فِي جَمْعِ العَسَلِ، فَتْحِ الصَّنْدُوقِ المَفْقُودِ، وَصَيْدِ النُّجُومِ النُّورَانِيَّةِ!
+                        </p>
+                    </div>
+
+                    <!-- 3 Level Summary Cards -->
+                    <div class="grid grid-cols-3 gap-2 w-full max-w-md my-2">
+                        <div class="bg-amber-100 border-2 border-amber-300 p-2.5 rounded-2xl text-center shadow-sm">
+                            <span class="text-xl sm:text-2xl block">🌸</span>
+                            <span class="text-[11px] sm:text-xs font-black text-amber-900 block mt-1">1. المَزْرَعَةُ</span>
+                        </div>
+                        <div class="bg-teal-100 border-2 border-teal-300 p-2.5 rounded-2xl text-center shadow-sm">
+                            <span class="text-xl sm:text-2xl block">📦</span>
+                            <span class="text-[11px] sm:text-xs font-black text-teal-900 block mt-1">2. الصَّنْدُوقُ</span>
+                        </div>
+                        <div class="bg-purple-100 border-2 border-purple-300 p-2.5 rounded-2xl text-center shadow-sm">
+                            <span class="text-xl sm:text-2xl block">⭐</span>
+                            <span class="text-[11px] sm:text-xs font-black text-purple-900 block mt-1">3. النُّجُومُ</span>
+                        </div>
+                    </div>
+
+                    <!-- Start Button -->
+                    <button onclick="startJourney()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-lg sm:text-xl px-8 py-3.5 rounded-2xl shadow-xl border-b-4 border-teal-800 btn-press flex items-center gap-2">
+                        <span>إِبْدَأِ المَغَامَرَةَ الآنَ</span>
+                        <i class="fas fa-play text-amber-300"></i>
+                    </button>
+                </div>
+            `;
+
+            speakArabic("أَهْلاً بِكُمْ يَا طُلَّابِي الأَذْكِيَاء! مَعَكُمْ الأُسْتَاذَة مَرْيَم البَلُوشِيّ. هَيَّا نَبْدَأُ مَغَامَرَةَ حَرْفِ النُّونِ!");
+        }
+
+        function startJourney() {
+            currentLevel = 1;
+            starScore = 0;
+            loadLevel(currentLevel);
+        }
+
+        function loadLevel(lvl) {
+            clearTimers();
+            const badge = document.getElementById('level-badge');
+            badge.classList.remove('hidden');
+            document.getElementById('current-lvl-num').innerText = lvl;
+
+            if (lvl === 1) renderLevel1();
+            else if (lvl === 2) renderLevel2();
+            else if (lvl === 3) renderLevel3();
+            else renderVictoryScreen();
+        }
+
+        // ==========================================
+        // LEVEL 1: "مَزْرَعَةُ النَّحْلَةِ نُونَة"
+        // ==========================================
+        function renderLevel1() {
+            const main = document.getElementById('main-content');
+
+            const flowersData = [
+                { word: 'نَـحْلَة', hasNun: true, img: '🐝' },
+                { word: 'تُفَّاح', hasNun: false, img: '🍎' },
+                { word: 'عِـنَـب', hasNun: true, img: '🍇' },
+                { word: 'قَطَّة', hasNun: false, img: '🐱' },
+                { word: 'لَيْمُـون', hasNun: true, img: '🍋' },
+                { word: 'كِتَاب', hasNun: false, img: '📚' }
+            ];
+
+            let collected = 0;
+            const targetNeeded = 3;
+
+            main.innerHTML = `
+                <div class="flex flex-col items-center justify-between h-full space-y-3">
+                    
+                    <!-- Level Title & Instructions -->
+                    <div class="text-center bg-amber-100/90 border-2 border-amber-300 p-3 rounded-2xl w-full flex items-center justify-between gap-2 shadow-sm">
+                        <div class="text-right">
+                            <h3 class="text-base sm:text-lg font-black text-amber-950">
+                                المَرْحَلَة 1: مَزْرَعَةُ النَّحْلَةِ نُونَة 🌸
+                            </h3>
+                            <p class="text-xs sm:text-sm font-bold text-slate-700">
+                                اِقْطِفْ الأَزْهَارَ الَّتِي تَحْمِلُ كَلِمَاتٍ بِهَا **حَرْفُ النُّونِ (ن)** لِتَجْمَعَ العَسَلَ!
+                            </p>
+                        </div>
+                        <button onclick="speakArabic('مَزْرَعَةُ النَّحْلَةِ نُونَة. اِقْطِفْ الأَزْهَارَ الَّتِي تَحْمِلُ كَلِمَاتٍ بِهَا حَرْفُ النُّونِ!')" class="bg-amber-300 text-amber-950 p-2.5 rounded-xl text-sm font-bold btn-press shadow">
+                            <i class="fas fa-volume-high"></i>
+                        </button>
+                    </div>
+
+                    <!-- Bee & Honey Meter Bar -->
+                    <div class="flex items-center justify-between w-full max-w-md bg-white/80 p-2.5 rounded-2xl border-2 border-amber-200">
+                        <div id="bee-mascot" class="flex items-center gap-2">
+                            <span class="text-3xl sm:text-4xl animate-bounce">🐝</span>
+                            <span id="bee-speech" class="text-xs font-black text-amber-900 bg-amber-100 px-2.5 py-1 rounded-xl border border-amber-300">
+                                هَيَّا نَجْمَعْ العَسَلَ! 🍯
+                            </span>
+                        </div>
+                        <div class="bg-amber-100 text-amber-900 font-black text-xs sm:text-sm px-3 py-1.5 rounded-xl border border-amber-300">
+                            العَسَلُ: <span id="honey-count" class="text-amber-600 text-base">0</span> / 3 🍯
+                        </div>
+                    </div>
+
+                    <!-- Flowers Grid -->
+                    <div id="flowers-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-lg my-auto">
+                        ${flowersData.map((f, i) => `
+                            <button onclick="checkFlower(${i}, ${f.hasNun}, '${f.word}')" id="flower-btn-${i}" class="flower-glow bg-white border-4 border-amber-200 hover:border-amber-400 rounded-3xl p-3 flex flex-col items-center justify-center shadow-md btn-press transition">
+                                <span class="text-4xl sm:text-5xl my-1">🌸</span>
+                                <span class="text-base sm:text-xl font-black text-slate-800">${f.word}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Next Level Button Container -->
+                    <div id="lvl1-next-container" class="hidden w-full flex justify-center pt-2">
+                        <button onclick="loadLevel(2)" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-lg px-8 py-2.5 rounded-2xl shadow-lg border-b-4 border-teal-800 btn-press flex items-center gap-2 animate-bounce">
+                            <span>المَرْحَلَةُ التَّالِيَةُ (الصَّنْدُوقُ)</span>
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            speakArabic("اِقْطِفْ الأَزْهَارَ الَّتِي تَحْمِلُ كَلِمَاتٍ بِهَا حَرْفُ النُّونِ!");
+
+            window.checkFlower = function(idx, hasNun, word) {
+                const btn = document.getElementById(`flower-btn-${idx}`);
+                if (!btn || btn.disabled) return;
+
+                speakArabic(word);
+
+                if (hasNun) {
+                    btn.disabled = true;
+                    btn.className = 'bg-amber-200 border-4 border-amber-500 rounded-3xl p-3 flex flex-col items-center justify-center shadow-inner opacity-80';
+                    btn.innerHTML = `
+                        <span class="text-4xl sm:text-5xl my-1 animate-wiggle">🍯</span>
+                        <span class="text-base sm:text-xl font-black text-amber-900">${word}</span>
+                    `;
+
+                    soundFX.playBuzz();
+                    soundFX.playCorrect();
+                    collected++;
+                    starScore += 10;
+                    document.getElementById('honey-count').innerText = collected;
+
+                    const beeSpeech = document.getElementById('bee-speech');
+                    beeSpeech.innerText = 'عَاشَ البَطَلُ! 🍯';
+
+                    showToast(`رَائِع! كَلِمَةُ (${word}) بِهَا حَرْفُ النُّونِ!`, true, '🐝');
+
+                    if (collected >= targetNeeded) {
+                        beeSpeech.innerText = 'أَبْدَعْتَ! جَمَعْنَا كُلَّ العَسَلِ! 🎉';
+                        document.getElementById('lvl1-next-container').classList.remove('hidden');
+                        speakArabic("أَحْسَنْتَ يَا بَطَل! جَمَعْنَا كُلَّ العَسَلِ! اضْغَطْ المَرْحَلَةَ التَّالِيَةَ!");
+                    }
+                } else {
+                    soundFX.playWrong();
+                    showToast(`كَلِمَةُ (${word}) لا تَحْتَوِي عَلَى حَرْفِ النُّونِ!`, false, '❌');
+                }
+            };
+        }
+
+        // ==========================================
+        // LEVEL 2: "مَغَامَرَةُ الصَّنْدُوقِ المَفْقُودِ"
+        // ==========================================
+        function renderLevel2() {
+            const main = document.getElementById('main-content');
+
+            const puzzles = [
+                {
+                    id: 1,
+                    template: '...َـمْرٌ',
+                    wordFull: 'نَـمْرٌ',
+                    img: '🐅',
+                    options: [
+                        { shape: 'نَـ', correct: true },
+                        { shape: 'ـنـ', correct: false },
+                        { shape: 'ـن', correct: false }
+                    ]
+                },
+                {
+                    id: 2,
+                    template: 'بِـ...ـتٌ',
+                    wordFull: 'بِـنْـتٌ',
+                    img: '👧',
+                    options: [
+                        { shape: 'نـ', correct: false },
+                        { shape: 'ـنْـ', correct: true },
+                        { shape: 'ن', correct: false }
+                    ]
+                },
+                {
+                    id: 3,
+                    template: 'رُمَّـ...',
+                    wordFull: 'رُمَّانٌ',
+                    img: '🍎',
+                    options: [
+                        { shape: 'ـن', correct: false },
+                        { shape: 'نـ', correct: false },
+                        { shape: 'ـانٌ', correct: true }
+                    ]
+                }
+            ];
+
+            let currentPuzzleIdx = 0;
+
+            function renderCurrentPuzzleCard() {
+                const p = puzzles[currentPuzzleIdx];
+
+                main.innerHTML = `
+                    <div class="flex flex-col items-center justify-between h-full space-y-3">
+                        
+                        <!-- Header Instruction -->
+                        <div class="text-center bg-teal-100/90 border-2 border-teal-300 p-3 rounded-2xl w-full flex items-center justify-between gap-2 shadow-sm">
+                            <div class="text-right">
+                                <h3 class="text-base sm:text-lg font-black text-teal-950">
+                                    المَرْحَلَة 2: مَغَامَرَةُ الصَّنْدُوقِ المَفْقُودِ 📦
+                                </h3>
+                                <p class="text-xs sm:text-sm font-bold text-slate-700">
+                                    اخْتَرِ الشَّكْلَ الصَّحِيحَ لِحَرْفِ النُّونِ لِفَتْحِ القُفْلِ (${currentPuzzleIdx + 1} مِنْ 3)!
+                                </p>
+                            </div>
+                            <button onclick="speakArabic('اخْتَرِ الشَّكْلَ الصَّحِيحَ لِحَرْفِ النُّونِ لِفَتْحِ الصَّنْدُوقِ!')" class="bg-teal-300 text-teal-950 p-2.5 rounded-xl text-sm font-bold btn-press shadow">
+                                <i class="fas fa-volume-high"></i>
+                            </button>
+                        </div>
+
+                        <!-- Treasure Chest & Puzzle Card -->
+                        <div class="flex flex-col items-center justify-center bg-gradient-to-b from-amber-50 to-orange-50 border-4 border-amber-300 rounded-3xl p-5 w-full max-w-md shadow-md space-y-3">
+                            
+                            <div id="chest-icon" class="text-5xl sm:text-6xl animate-bounce">
+                                🔒📦
+                            </div>
+
+                            <div class="text-4xl sm:text-5xl my-1">${p.img}</div>
+
+                            <div class="bg-white border-4 border-dashed border-amber-400 px-6 py-3 rounded-2xl text-3xl sm:text-4xl font-black text-purple-900 shadow-inner tracking-widest">
+                                ${p.template}
+                            </div>
+                        </div>
+
+                        <!-- Key Letter Options -->
+                        <div class="grid grid-cols-3 gap-3 w-full max-w-md">
+                            ${p.options.map((opt, i) => `
+                                <button onclick="checkKeyAnswer(${opt.correct}, '${opt.shape}')" class="bg-white border-4 border-teal-200 hover:border-teal-400 rounded-2xl p-3.5 text-2xl sm:text-3xl font-black text-teal-800 shadow-md btn-press transition">
+                                    🔑 ${opt.shape}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Next Level Container (Shows on 3rd puzzle solved) -->
+                        <div id="lvl2-next-container" class="hidden w-full flex justify-center pt-2">
+                            <button onclick="loadLevel(3)" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-lg px-8 py-2.5 rounded-2xl shadow-lg border-b-4 border-indigo-900 btn-press flex items-center gap-2 animate-bounce">
+                                <span>المَرْحَلَةُ التَّالِيَةُ (صَيْدُ النُّجُومِ)</span>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                speakArabic(`اخْتَرِ الشَّكْلَ الصَّحِيحَ لِحَرْفِ النُّونِ فِي كَلِمَةِ ${p.wordFull}`);
+            }
+
+            renderCurrentPuzzleCard();
+
+            window.checkKeyAnswer = function(isCorrect, shape) {
+                speakArabic(shape);
+
+                if (isCorrect) {
+                    soundFX.playCorrect();
+                    starScore += 10;
+                    showToast(`أَحْسَنْتَ! القُفْلُ يَنْفَتِحُ! 🔓`, true, '🎉');
+
+                    const chest = document.getElementById('chest-icon');
+                    if (chest) chest.innerText = '🔓✨';
+
+                    setTimeout(() => {
+                        currentPuzzleIdx++;
+                        if (currentPuzzleIdx < puzzles.length) {
+                            renderCurrentPuzzleCard();
+                        } else {
+                            // Completed all 3 puzzle cards
+                            const chestBox = document.getElementById('chest-icon');
+                            if (chestBox) chestBox.innerText = '💎🎁';
+                            
+                            document.getElementById('lvl2-next-container').classList.remove('hidden');
+                            speakArabic("مَبْرُوك! فَتَحْتَ الصَّنْدُوقَ المَفْقُودَ بِنَجَاح! اضْغَطْ المَرْحَلَةَ التَّالِيَةَ!");
+                        }
+                    }, 800);
+                } else {
+                    soundFX.playWrong();
+                    showToast(`حَاوِلْ مَرَّةً أُخْرَى!`, false, '❌');
+                }
+            };
+        }
+
+        // ==========================================
+        // LEVEL 3: "صَيَّادُ النُّجُومِ النُّورَانِيَّةِ"
+        // ==========================================
+        function renderLevel3() {
+            const main = document.getElementById('main-content');
+
+            main.innerHTML = `
+                <div class="flex flex-col items-center justify-between h-full space-y-2">
+                    
+                    <!-- Instructions -->
+                    <div class="text-center bg-purple-100/90 border-2 border-purple-300 p-2.5 rounded-2xl w-full flex items-center justify-between gap-2 shadow-sm">
+                        <div class="text-right">
+                            <h3 class="text-base sm:text-lg font-black text-purple-950">
+                                المَرْحَلَة 3: صَيَّادُ النُّجُومِ النُّورَانِيَّةِ ⭐
+                            </h3>
+                            <p class="text-xs sm:text-sm font-bold text-slate-700">
+                                اصْطَدْ النُّجُومَ الَّتِي تَحْمِلُ حَرْفَ النُّونِ (نَ، نُ، نِ، نا، نو، ني) وَتَجَنَّبْ الحُرُوفَ الأُخْرَى!
+                            </p>
+                        </div>
+                        <button onclick="speakArabic('اصْطَدْ النُّجُومَ الَّتِي تَحْمِلُ حَرْفَ النُّونِ!')" class="bg-purple-300 text-purple-950 p-2.5 rounded-xl text-sm font-bold btn-press shadow">
+                            <i class="fas fa-volume-high"></i>
+                        </button>
+                    </div>
+
+                    <!-- Interactive Game Canvas Container -->
+                    <div class="relative w-full max-w-md flex flex-col items-center">
+                        <canvas id="star-canvas" width="400" height="270" class="w-full h-[270px] bg-gradient-to-b from-slate-900 via-indigo-950 to-purple-950 rounded-3xl border-4 border-amber-300 shadow-xl cursor-pointer"></canvas>
+                    </div>
+
+                    <!-- Next Level / Victory Container -->
+                    <div id="lvl3-next-container" class="hidden w-full flex justify-center pt-1">
+                        <button onclick="renderVictoryScreen()" class="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-amber-950 font-black text-lg px-8 py-2.5 rounded-2xl shadow-lg border-b-4 border-amber-700 btn-press flex items-center gap-2 animate-bounce">
+                            <span>اسْتَلاَمُ شَهَادَةِ التَّفَوُّقِ 🎉</span>
+                            <i class="fas fa-award"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            speakArabic("اصْطَدْ 5 نُجُومٍ تَحْمِلُ حَرْفَ النُّونِ لِلْفَوْزِ!");
+
+            const canvas = document.getElementById('star-canvas');
+            const ctx = canvas.getContext('2d');
+
+            let basketX = canvas.width / 2 - 35;
+            const basketWidth = 70;
+            const basketHeight = 22;
+            let caughtStars = 0;
+            const neededStars = 5;
+
+            let fallingStars = [];
+
+            function spawnStar() {
+                const nunOptions = ['نَ', 'نُ', 'نِ', 'نَا', 'نُو', 'نِي', 'نـ'];
+                const otherOptions = ['بَ', 'تُ', 'مِ', 'سَ', 'لُ'];
+                
+                const isNun = Math.random() < 0.7;
+                const char = isNun 
+                    ? nunOptions[Math.floor(Math.random() * nunOptions.length)]
+                    : otherOptions[Math.floor(Math.random() * otherOptions.length)];
+
+                fallingStars.push({
+                    x: Math.random() * (canvas.width - 50) + 25,
+                    y: 0,
+                    char: char,
+                    isNun: isNun,
+                    speed: 2 + Math.random() * 1.5
+                });
+            }
+
+            function moveBasket(e) {
+                const rect = canvas.getBoundingClientRect();
+                let clientX = e.clientX;
+                if (e.touches && e.touches[0]) {
+                    clientX = e.touches[0].clientX;
+                }
+                const relX = clientX - rect.left;
+                basketX = relX - basketWidth / 2;
+                if (basketX < 0) basketX = 0;
+                if (basketX > canvas.width - basketWidth) basketX = canvas.width - basketWidth;
+            }
+
+            canvas.addEventListener('mousemove', moveBasket);
+            canvas.addEventListener('touchmove', moveBasket);
+
+            let frameCount = 0;
+
+            function drawLoop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw background stars
+                ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+                for (let i = 0; i < 15; i++) {
+                    ctx.fillRect((i * 27) % canvas.width, (i * 43) % canvas.height, 2, 2);
+                }
+
+                // Draw Catch Basket
+                ctx.fillStyle = '#F59E0B';
+                ctx.beginPath();
+                ctx.roundRect(basketX, canvas.height - basketHeight - 10, basketWidth, basketHeight, 10);
+                ctx.fill();
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 12px Cairo';
+                ctx.textAlign = 'center';
+                ctx.fillText('سَلَّةُ النُّونِ 🧺', basketX + basketWidth / 2, canvas.height - 15);
+
+                frameCount++;
+                if (frameCount % 45 === 0) {
+                    spawnStar();
+                }
+
+                for (let i = fallingStars.length - 1; i >= 0; i--) {
+                    const s = fallingStars[i];
+                    s.y += s.speed;
+
+                    // Glowing Star Body
+                    ctx.fillStyle = s.isNun ? '#FBBF24' : '#9CA3AF';
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, 18, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Star Text
+                    ctx.fillStyle = s.isNun ? '#78350F' : '#1F2937';
+                    ctx.font = 'bold 16px Cairo';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(s.char, s.x, s.y + 5);
+
+                    // Catch Detection
+                    if (
+                        s.y + 18 >= canvas.height - basketHeight - 10 &&
+                        s.x >= basketX && s.x <= basketX + basketWidth
+                    ) {
+                        if (s.isNun) {
+                            soundFX.playStar();
+                            caughtStars++;
+                            starScore += 10;
+                            speakArabic(s.char);
+
+                            if (caughtStars >= neededStars) {
+                                clearInterval(activeInterval);
+                                document.getElementById('lvl3-next-container').classList.remove('hidden');
+                                speakArabic("مَبْرُوك! اصْطَدْتَ جَمِيعَ النُّجُومِ النُّورَانِيَّةِ!");
+                                return;
+                            }
+                        } else {
+                            soundFX.playWrong();
+                        }
+                        fallingStars.splice(i, 1);
+                        continue;
+                    }
+
+                    if (s.y > canvas.height) {
+                        fallingStars.splice(i, 1);
+                    }
+                }
+
+                // Score Display on Canvas
+                ctx.fillStyle = '#FDE68A';
+                ctx.font = 'bold 14px Cairo';
+                ctx.textAlign = 'right';
+                ctx.fillText(`النُّجُومُ: ${caughtStars} / ${neededStars} ⭐`, canvas.width - 15, 25);
+            }
+
+            activeInterval = setInterval(drawLoop, 1000 / 60);
+        }
+
+        // ==========================================
+        // FINAL VICTORY SCREEN ("شَهَادَةُ التَّفَوُّقِ")
+        // ==========================================
+        function renderVictoryScreen() {
+            clearTimers();
+            document.getElementById('level-badge').classList.add('hidden');
+            const main = document.getElementById('main-content');
+
+            main.innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center py-2 my-auto space-y-3 animate-fade-in">
+                    
+                    <!-- Printable Digital Badge Certificate -->
+                    <div id="certificate-card" class="bg-gradient-to-br from-amber-50 via-yellow-100 to-amber-100 border-8 border-amber-400 p-5 rounded-3xl w-full max-w-lg shadow-2xl space-y-3 relative overflow-hidden">
+                        
+                        <div class="flex justify-between items-center border-b-2 border-amber-300 pb-2">
+                            <span class="text-3xl">🏆</span>
+                            <span class="text-xs sm:text-sm font-black text-amber-900">شَهَادَةُ تَفَوُّقٍ وَتَقْدِيرٍ</span>
+                            <span class="text-3xl">🌟</span>
+                        </div>
+
+                        <div class="space-y-1">
+                            <h2 class="text-2xl sm:text-3xl font-black text-amber-950">
+                                🏅 البَطَلُ المَاهِرُ فِي حَرْفِ النُّونِ 🏅
+                            </h2>
+                            <p class="text-xs sm:text-sm font-bold text-slate-700">
+                                يُشْهِدُ أَنَّ الطَّالِبَ المَاهِرَ قَدْ أَتَمَّ جَمِيعَ مَغَامَرَاتِ حَرْفِ النُّونِ بِنَجَاحٍ بَاهِرٍ!
+                            </p>
+                        </div>
+
+                        <!-- 3 Golden Stars -->
+                        <div class="flex justify-center gap-2 text-3xl sm:text-4xl text-amber-500 my-1 animate-bounce">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+
+                        <div class="bg-white/90 border-2 border-amber-300 rounded-2xl p-2.5 text-center shadow-inner">
+                            <span class="text-xs font-bold text-slate-600 block">إِعْدَادُ وَإِشْرَافُ:</span>
+                            <span class="text-sm sm:text-base font-black text-purple-900 block">الأُسْتَاذَةُ: مَرْيَم البَلُوشِيّ</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap justify-center gap-3 pt-2 no-print">
+                        <button onclick="renderWelcomeScreen()" id="btn-restart" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-black text-base sm:text-lg px-6 py-3 rounded-2xl shadow-lg border-b-4 border-emerald-800 btn-press flex items-center gap-2">
+                            <i class="fas fa-rotate-right"></i>
+                            <span>الَّعِبُ مِنْ جَدِيدٍ</span>
+                        </button>
+                        <button onclick="window.print()" class="bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-base sm:text-lg px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-600 btn-press flex items-center gap-2">
+                            <i class="fas fa-print"></i>
+                            <span>طِبَاعَةُ الشَّهَادَةِ</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            soundFX.playCorrect();
+            speakArabic("مَبْرُوكٌ يَا بَطَل! أَنْتَ العَبْقَرِيُّ المَاهِرُ فِي حَرْفِ النُّونِ. إِعْدَادُ الأُسْتَاذَةِ مَرْيَم البَلُوشِيّ.");
+
+            // Confetti Blast Effect
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+    </script>
+</body>
+</html>
